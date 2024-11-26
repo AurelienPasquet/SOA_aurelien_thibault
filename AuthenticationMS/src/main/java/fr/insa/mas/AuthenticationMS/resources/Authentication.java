@@ -14,7 +14,7 @@ import fr.insa.mas.AuthenticationMS.model.credentials;
 @RequestMapping("/auth")
 public class Authentication {
 
-	@GetMapping("/{idStudent}")
+	@GetMapping("/{login}/{passwd}")
 	public boolean authentication(@PathVariable("login") String login , @PathVariable("passwd") String passwd) {
 		
 		List<credentials> listUsers=Arrays.asList(
