@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.insa.mas.UserManagementMS.model.User;
@@ -12,10 +13,17 @@ import fr.insa.mas.UserManagementMS.model.User;
 @RequestMapping("/user")
 public class UserManagement {
 
-	@PostMapping("/{id}")
-	public User createUser(@PathVariable("id") int id) {
+	@GetMapping("/create")
+	public User createUser(
+			@RequestParam int id, 
+			@RequestParam String firstname,
+			@RequestParam String lastname,
+			@RequestParam String login,
+			@RequestParam String pwd,
+			@RequestParam String role
+			) {
 		
-		User user = new User(id, "Tibo", "Oui", "loguine", "12345", "BG");
+		User user = new User(id, firstname, lastname, login, pwd, role);
 		
 		return user;
 	}
