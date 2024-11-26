@@ -1,13 +1,13 @@
-package fr.insa.mas.UserCreationMS;
+package fr.insa.mas.UserManagementMS;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class UserCreationMSApplication {
+public class UserManagementMSApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(UserCreationMSApplication.class, args);
+		SpringApplication.run(UserManagementMSApplication.class, args);
 	}
 
 }
