@@ -1,0 +1,12 @@
+package fr.insa.mas.authenticationms;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AuthenticationMSApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(AuthenticationMSApplication.class, args);
+    }
+}
