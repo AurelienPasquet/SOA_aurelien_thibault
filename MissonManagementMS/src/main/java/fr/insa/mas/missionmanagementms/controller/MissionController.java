@@ -50,7 +50,6 @@ public class MissionController {
 				mission.setBody(result.getString("mission_body"));
 				mission.setVolunteer_id(result.getInt("mission_volunteer_id"));
 				mission.setAsker_id(result.getInt("mission_asker_id"));
-				mission.setValidator_id(result.getInt("mission_validator_id"));
 				mission.setStatus(result.getString("mission_status"));
 			}
 
@@ -86,16 +85,15 @@ public class MissionController {
 		try {
 			con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
-			String query = "INSERT INTO missions (mission_title, mission_body, mission_volunteer_id, mission_asker_id, mission_validator_id, mission_status) "
-					+ "VALUES (?, ?, ?, ?, ?, ?);";
+			String query = "INSERT INTO missions (mission_title, mission_body, mission_volunteer_id, mission_asker_id, mission_status) "
+					+ "VALUES (?, ?, ?, ?, ?);";
 			stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 			stmt.setString(1, mission.getTitle());
 			stmt.setString(2, mission.getBody());
 			stmt.setInt(3, mission.getVolunteer_id());
 			stmt.setInt(4, mission.getAsker_id());
-			stmt.setInt(5, mission.getValidator_id());
-			stmt.setString(6, mission.getStatus());
+			stmt.setString(5, mission.getStatus());
 
 			int affectedRows = stmt.executeUpdate();
 
@@ -137,17 +135,16 @@ public class MissionController {
 			con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
 			String query = "UPDATE missions SET " + "mission_title = ?, " + "mission_body = ?, "
-					+ "mission_volunteer_id = ?, " + "mission_asker_id = ?, " + "mission_validator_id = ?, "
-					+ "mission_status = ? " + "WHERE mission_id = ?;";
+					+ "mission_volunteer_id = ?, " + "mission_asker_id = ?, " + "mission_status = ? "
+					+ "WHERE mission_id = ?;";
 			stmt = con.prepareStatement(query);
 
 			stmt.setString(1, mission.getTitle());
 			stmt.setString(2, mission.getBody());
 			stmt.setInt(3, mission.getVolunteer_id());
 			stmt.setInt(4, mission.getAsker_id());
-			stmt.setInt(5, mission.getValidator_id());
-			stmt.setString(6, mission.getStatus());
-			stmt.setInt(7, mission.getId());
+			stmt.setString(5, mission.getStatus());
+			stmt.setInt(6, mission.getId());
 
 			int affectedRows = stmt.executeUpdate();
 

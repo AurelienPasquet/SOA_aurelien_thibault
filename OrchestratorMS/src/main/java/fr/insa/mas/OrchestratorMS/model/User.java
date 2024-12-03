@@ -6,11 +6,13 @@ public class User {
 	private String firstname;
 	private String lastname;
 	private String role;
-	
-	public User(String firstname, String lastname, String role) {
+	private String validatorName;
+
+	public User(String firstname, String lastname, String role, String validatorName) {
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.role = role;
+		this.validatorName = validatorName;
 	}
 	
 	public User() {}
@@ -47,8 +49,16 @@ public class User {
 		this.role = role;
 	}
 	
+	public String getValidatorName() {
+		return validatorName;
+	}
+
+	public void setValidatorName(String validatorName) {
+		this.validatorName = validatorName;
+	}
+	
 	@Override
 	public String toString() {
-		return "User [id=" +this.id+ ", firstname=" +this.firstname+ ", lastname=" +this.lastname+ ", role=" +this.role+ "]";
+		return "User [id=" +this.id+ ", firstname=" +this.firstname+ ", lastname=" +this.lastname+ ", role=" +this.role+ ", validator=" +this.validatorName+ "]";
 	}
 }

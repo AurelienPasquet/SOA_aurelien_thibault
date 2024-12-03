@@ -48,7 +48,7 @@ public class AuthenticationController {
 				credentials = new Credentials();
 				credentials.setId(result.getInt("user_id"));
 				credentials.setLogin(result.getString("user_login"));
-				credentials.setPwd(result.getString("user_pwd"));
+				credentials.setPassword(result.getString("user_pwd"));
 			}
 
 			if (credentials == null) {
@@ -72,7 +72,7 @@ public class AuthenticationController {
 
 		return ResponseEntity.ok(credentials);
 	}
-
+	
 	@GetMapping(value = "/credentials")
 	public ResponseEntity<Boolean> checkLoginExists(@RequestParam("login") String login) {
 		Connection con = null;
@@ -127,7 +127,7 @@ public class AuthenticationController {
 
 			stmt.setInt(1, credentials.getId());
 			stmt.setString(2, credentials.getLogin());
-			stmt.setString(3, credentials.getPwd());
+			stmt.setString(3, credentials.getPassword());
 
 			int affectedRows = stmt.executeUpdate();
 
@@ -151,6 +151,50 @@ public class AuthenticationController {
 			}
 		}
 	}
+	
+	@PostMapping(value = "/credentials/check", consumes = MediaType.APPLICATION_JSON)
+	public ResponseEntity<Integer> validateCredentials(@RequestBody Credentials request) {
+	    Connection con = null;
+	    PreparedStatement stmt = null;
+	    ResultSet result = null;
+
+	    try {
+	        // Validate input
+	        if (request.getLogin() == null || request.getPassword() == null) {
+	            return ResponseEntity.badRequest().body(null); // Return 400 Bad Request
+	        }
+
+	        // Establish database connection
+	        con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
+
+	        // Query to validate credentials and fetch user_id
+	        String query = "SELECT user_id FROM credentials WHERE user_login = ? AND user_pwd = ?;";
+	        stmt = con.prepareStatement(query);
+	        stmt.setString(1, request.getLogin());
+	        stmt.setString(2, request.getPassword());
+
+	        result = stmt.executeQuery();
+
+	        if (result.next()) {
+	            int userId = result.getInt("user_id");
+	            return ResponseEntity.ok(userId); // Return user_id if credentials are valid
+	        } else {
+	            return ResponseEntity.ok(0); // Return 0 if no match is found
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(null); // Return 500 on database error
+	    } finally {
+	        // Clean up resources
+	        try {
+	            if (result != null) result.close();
+	            if (stmt != null) stmt.close();
+	            if (con != null) con.close();
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	}
 
 	@PutMapping(value = "/credentials", consumes = MediaType.APPLICATION_JSON)
 	public ResponseEntity<Credentials> updateCredentials(@RequestBody Credentials credentials) {
@@ -164,7 +208,7 @@ public class AuthenticationController {
 			stmt = con.prepareStatement(query);
 
 			stmt.setString(1, credentials.getLogin());
-			stmt.setString(2, credentials.getPwd());
+			stmt.setString(2, credentials.getPassword());
 			stmt.setInt(3, credentials.getId());
 
 			int affectedRows = stmt.executeUpdate();

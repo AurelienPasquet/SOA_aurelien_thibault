@@ -5,14 +5,16 @@ public class SignUpRequest {
 	private String firstname;
     private String lastname;
     private String role;
-    private String login;
+    private String validatorName;
+	private String login;
     private String password;
     
-    public SignUpRequest(String firstname, String lastname, String role, String login, String password) {
+    public SignUpRequest(String firstname, String lastname, String role, String validatorName, String login, String password) {
 		super();
 		this.firstname = firstname;
 		this.lastname = lastname;
 		this.role = role;
+		this.validatorName = validatorName;
 		this.login = login;
 		this.password = password;
 	}
@@ -27,6 +29,9 @@ public class SignUpRequest {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    
+    public String getValidatorName() {return validatorName;}
+	public void setValidatorName(String validatorName) {this.validatorName = validatorName;}
 
     public String getLogin() { return login; }
     public void setLogin(String login) { this.login = login; }

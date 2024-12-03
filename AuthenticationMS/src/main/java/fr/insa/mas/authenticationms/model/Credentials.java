@@ -4,12 +4,12 @@ public class Credentials {
 	
 	private int id;
 	private String login;
-	private String pwd;
+	private String password;
 	
-	public Credentials(int id, String login, String pwd) {
+	public Credentials(int id, String login, String password) {
 		this.id = id;
 		this.login = login;
-		this.pwd = pwd;
+		this.password = password;
 	}
 	
 	public Credentials() {}
@@ -30,12 +30,11 @@ public class Credentials {
 		this.login = login;
 	}
 
-	public String getPwd() {
-		return pwd;
+	public String getPassword() {
+		return password;
 	}
 
-	public void setPwd(String pwd) {
-		this.pwd = pwd;
+	public void setPassword(String pwd) {
+		this.password = pwd;
 	}
-	
 }

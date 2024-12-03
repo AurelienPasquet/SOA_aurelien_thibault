@@ -48,6 +48,7 @@ public class UserController {
 	            user.setFirstname(result.getString("user_firstname"));
 	            user.setLastname(result.getString("user_lastname"));
 	            user.setRole(result.getString("user_role"));
+	            user.setValidatorName(result.getString("validator_name"));
 	        }
 
 	        if (user == null) {
@@ -79,12 +80,13 @@ public class UserController {
 	    try {
 	        con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
-	        String query = "INSERT INTO users (user_firstname, user_lastname, user_role) VALUES (?, ?, ?);";
+	        String query = "INSERT INTO users (user_firstname, user_lastname, user_role, validator_name) VALUES (?, ?, ?, ?);";
 	        stmt = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
 	        stmt.setString(1, user.getFirstname());
 	        stmt.setString(2, user.getLastname());
 	        stmt.setString(3, user.getRole());
+	        stmt.setString(4, user.getValidatorName());
 
 	        int affectedRows = stmt.executeUpdate();
 
@@ -126,13 +128,14 @@ public class UserController {
 	    try {
 	        con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
-	        String query = "UPDATE users SET user_firstname = ?, user_lastname = ?, user_role = ? WHERE user_id = ?;";
+	        String query = "UPDATE users SET user_firstname = ?, user_lastname = ?, user_role = ?, validator_name = ? WHERE user_id = ?;";
 	        stmt = con.prepareStatement(query);
 
 	        stmt.setString(1, user.getFirstname());
 	        stmt.setString(2, user.getLastname());
 	        stmt.setString(3, user.getRole());
-	        stmt.setInt(4, user.getId());
+	        stmt.setString(4, user.getValidatorName());
+	        stmt.setInt(5, user.getId());
 
 	        int affectedRows = stmt.executeUpdate();
 
