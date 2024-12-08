@@ -92,10 +92,8 @@ public class CommentController {
 		List<Comment> comments = new ArrayList<>();
 
 		try {
-			// Établir la connexion à la base de données
 			con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
-			// Construire la requête SQL dynamiquement
 			StringBuilder query = new StringBuilder("SELECT * FROM comments WHERE 1=1");
 			List<Object> params = new ArrayList<>();
 
