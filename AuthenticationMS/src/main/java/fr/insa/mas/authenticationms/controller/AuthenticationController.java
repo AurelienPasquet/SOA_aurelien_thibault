@@ -6,8 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.hc.core5.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,11 +54,11 @@ public class AuthenticationController {
 			}
 
 			if (credentials == null) {
-				return ResponseEntity.status(HttpStatus.SC_NOT_FOUND).build();
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		} finally {
 			try {
 				if (result != null)
@@ -74,45 +76,68 @@ public class AuthenticationController {
 	}
 	
 	@GetMapping(value = "/credentials")
-	public ResponseEntity<Boolean> checkLoginExists(@RequestParam("login") String login) {
-		Connection con = null;
-		PreparedStatement stmt = null;
-		ResultSet result = null;
+	public ResponseEntity<List<Credentials>> getCredentials(
+	        @RequestParam(value = "user_id", required = false) Integer userId,
+	        @RequestParam(value = "login", required = false) String login,
+	        @RequestParam(value = "password", required = false) String password
+	) {
+	    Connection con = null;
+	    PreparedStatement stmt = null;
+	    ResultSet result = null;
 
-		try {
-			// Establish database connection
-			con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
+	    List<Credentials> credentials = new ArrayList<>();
 
-			// Query to check if the login exists
-			String query = "SELECT COUNT(*) AS count FROM credentials WHERE user_login = ?;";
-			stmt = con.prepareStatement(query);
-			stmt.setString(1, login);
+	    try {
+	        con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
-			result = stmt.executeQuery();
+	        StringBuilder query = new StringBuilder("SELECT * FROM credentials WHERE 1=1");
+	        List<Object> params = new ArrayList<>();
 
-			if (result.next()) {
-				int count = result.getInt("count");
-				return ResponseEntity.ok(count > 0); // Return true if login exists, otherwise false
-			} else {
-				return ResponseEntity.ok(false); // Return false if no result is found
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(null); // Return 500 on database error
-		} finally {
-			// Clean up resources
-			try {
-				if (result != null)
-					result.close();
-				if (stmt != null)
-					stmt.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
+	        if (userId != null) {
+	            query.append(" AND user_id = ?");
+	            params.add(userId);
+	        }
+	        if (login != null && !login.isEmpty()) {
+	            query.append(" AND user_login = ?");
+	            params.add(login);
+	        }
+	        if (password != null && !password.isEmpty()) {
+	            query.append(" AND user_pwd = ?");
+	            params.add(password);
+	        }
+
+	        stmt = con.prepareStatement(query.toString());
+
+	        for (int i = 0; i < params.size(); i++) {
+	            stmt.setObject(i + 1, params.get(i));
+	        }
+
+	        result = stmt.executeQuery();
+
+	        while (result.next()) {
+	            Credentials credential = new Credentials();
+	            credential.setId(result.getInt("user_id"));
+	            credential.setLogin(result.getString("user_login"));
+	            credential.setPassword(result.getString("user_pwd"));
+	            credentials.add(credential);
+	        }
+
+	        return ResponseEntity.ok(credentials);
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+	    } finally {
+	        try {
+	            if (result != null) result.close();
+	            if (stmt != null) stmt.close();
+	            if (con != null) con.close();
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	    }
 	}
+
 
 	@PostMapping(value = "/credentials", consumes = MediaType.APPLICATION_JSON)
 	public ResponseEntity<Credentials> createCredentials(@RequestBody Credentials credentials) {
@@ -133,13 +158,13 @@ public class AuthenticationController {
 
 			if (affectedRows > 0) {
 				System.out.println("Credentials successfully added.");
-				return ResponseEntity.status(HttpStatus.SC_CREATED).body(credentials);
+				return ResponseEntity.status(HttpStatus.CREATED).body(credentials);
 			} else {
-				return ResponseEntity.status(HttpStatus.SC_BAD_REQUEST).build();
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		} finally {
 			try {
 				if (stmt != null)
@@ -153,39 +178,40 @@ public class AuthenticationController {
 	}
 	
 	@PostMapping(value = "/credentials/check", consumes = MediaType.APPLICATION_JSON)
-	public ResponseEntity<Integer> validateCredentials(@RequestBody Credentials request) {
+	public ResponseEntity<String> validateCredentials(@RequestBody Credentials request) {
 	    Connection con = null;
 	    PreparedStatement stmt = null;
 	    ResultSet result = null;
 
 	    try {
-	        // Validate input
 	        if (request.getLogin() == null || request.getPassword() == null) {
-	            return ResponseEntity.badRequest().body(null); // Return 400 Bad Request
+	            return ResponseEntity.badRequest().body("Login et mot de passe requis.");
 	        }
 
-	        // Establish database connection
 	        con = DriverManager.getConnection(urlDB, loginDB, pwdDB);
 
-	        // Query to validate credentials and fetch user_id
-	        String query = "SELECT user_id FROM credentials WHERE user_login = ? AND user_pwd = ?;";
-	        stmt = con.prepareStatement(query);
+	        String loginQuery = "SELECT user_id, user_pwd FROM credentials WHERE user_login = ?;";
+	        stmt = con.prepareStatement(loginQuery);
 	        stmt.setString(1, request.getLogin());
-	        stmt.setString(2, request.getPassword());
 
 	        result = stmt.executeQuery();
 
 	        if (result.next()) {
-	            int userId = result.getInt("user_id");
-	            return ResponseEntity.ok(userId); // Return user_id if credentials are valid
+	            String correctPassword = result.getString("user_pwd");
+
+	            if (request.getPassword().equals(correctPassword)) {
+	                int userId = result.getInt("user_id");
+	                return ResponseEntity.ok(String.valueOf(userId));
+	            } else {
+	                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mot de passe incorrect.");
+	            }
 	        } else {
-	            return ResponseEntity.ok(0); // Return 0 if no match is found
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé.");
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	        return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).body(null); // Return 500 on database error
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur interne du serveur.");
 	    } finally {
-	        // Clean up resources
 	        try {
 	            if (result != null) result.close();
 	            if (stmt != null) stmt.close();
@@ -195,6 +221,7 @@ public class AuthenticationController {
 	        }
 	    }
 	}
+
 
 	@PutMapping(value = "/credentials", consumes = MediaType.APPLICATION_JSON)
 	public ResponseEntity<Credentials> updateCredentials(@RequestBody Credentials credentials) {
@@ -217,11 +244,11 @@ public class AuthenticationController {
 				System.out.println("Credentials successfully updated.");
 				return ResponseEntity.ok(credentials);
 			} else {
-				return ResponseEntity.status(HttpStatus.SC_NOT_FOUND).build();
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		} finally {
 			try {
 				if (stmt != null)
@@ -254,11 +281,11 @@ public class AuthenticationController {
 				return ResponseEntity.noContent().build();
 			} else {
 				System.out.println("No credentials found with ID: " + id);
-				return ResponseEntity.status(HttpStatus.SC_NOT_FOUND).build();
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).build();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		} finally {
 			try {
 				if (stmt != null)
